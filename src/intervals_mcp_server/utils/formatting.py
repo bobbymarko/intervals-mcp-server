@@ -32,7 +32,13 @@ class _KeyTracker(dict):
 
 def format_activity_summary(activity: dict[str, Any]) -> str:
     """Format an activity into a readable string."""
-    start_time = activity.get("startTime", activity.get("start_date", "Unknown"))
+    if activity.get("_note") or activity.get("source") == "STRAVA" and not activity.get("name"):
+        source = activity.get("source", "Unknown source")
+        date = activity.get("start_date_local", activity.get("startTime", "Unknown date"))
+        note = activity.get("_note", f"{source} activities are not available via the API")
+        return f"Activity: [{source}] {date}\nID: {activity.get('id', 'N/A')}\nNote: {note}\n"
+
+    start_time = activity.get("startTime", activity.get("start_date_local", activity.get("start_date", "Unknown")))
 
     if isinstance(start_time, str) and len(start_time) > 10:
         # Format datetime if it's a full ISO string

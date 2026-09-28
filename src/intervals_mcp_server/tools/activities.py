@@ -42,11 +42,11 @@ def _parse_activities_from_result(result: Any) -> list[dict[str, Any]]:
 
 
 def _filter_named_activities(activities: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Filter out unnamed activities from the list."""
+    """Filter out unnamed and API-unavailable activities from the list."""
     return [
         activity
         for activity in activities
-        if activity.get("name") and activity.get("name") != "Unnamed"
+        if activity.get("name") and activity.get("name") != "Unnamed" and not activity.get("_note")
     ]
 
 
@@ -153,16 +153,9 @@ async def get_activities(  # pylint: disable=too-many-arguments,too-many-return-
     if not activities:
         return f"No valid activities found for athlete {athlete_id_to_use} in the specified date range."
 
-    # Filter and fetch more if needed
+    # Filter unnamed if requested
     if not include_unnamed:
         activities = _filter_named_activities(activities)
-
-        # If we don't have enough named activities, try to fetch more
-        if len(activities) < limit:
-            more_activities = await _fetch_more_activities(
-                athlete_id_to_use, start_date, api_key, api_limit
-            )
-            activities.extend(more_activities)
 
     # Limit to requested count
     activities = activities[:limit]
